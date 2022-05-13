@@ -3,6 +3,7 @@
 use rocket_contrib::json::Json;
 use rusqlite::Connection;
 use serde::Serialize;
+use std::fs;
 
 #[macro_use]
 extern crate rocket;
@@ -110,7 +111,7 @@ fn endpoint_delete_todos(id: i64) -> Result<Json<StatusMessage>, String> {
     }
 }
 
-fn db_connect() {
+fn db_init() {
     let db_connection: Connection =
         Connection::open("data.sqlite").expect("Error connecting to the database!");
 
@@ -126,7 +127,13 @@ fn db_connect() {
 }
 
 fn main() {
-    db_connect();
+    let is_file_created = std::path::Path::new("data.sqlite").exists();
+
+    if is_file_created {
+        fs::remove_file("data.sqlite").expect("Couldn't delete data.sqlite file");
+    }
+
+    db_init();
 
     rocket::ignite()
         .mount(
